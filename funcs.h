@@ -6,7 +6,7 @@
 /*   By: hroussea <hroussea@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/12 16:47:26 by hroussea          #+#    #+#             */
-/*   Updated: 2021/02/12 17:40:55 by hroussea         ###   ########lyon.fr   */
+/*   Updated: 2021/02/12 20:44:31 by hroussea         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,21 @@
 
 typedef char*			t_str;
 
+typedef enum e_token_t {
+	TOKEN_WHITESPACE,
+	TOKEN_WHITESPACES_ZERO_OR_MORE,
+	TOKEN_WHITESPACES_ONE_OR_MORE,
+	TOKEN_WHITESPACE_NL_ZERO_OR_MORE,
+	TOKEN_WHITESPACES_NL_ONE_OR_MORE,
+	TOKEN_IDENTIFIER,
+	TOKEN_SINGLE_CHAR,
+	TOKEN_NUMBER,
+	TOKEN_ALNUM_CHAIN,
+	TOKEN_SEPARATED,
+	TOKEN_END_OF_STREAM,
+	TOKEN_FINISH_TASK,
+}	t_token_type;
+
 typedef enum e_descstat {
 	DESC_STATUS_LAST,
 	DESC_STATUS_OK,
@@ -33,7 +48,8 @@ typedef enum e_descstat {
 typedef struct s_descriptor {
 	char			*start;
 	char			*end;
-	t_str			description;
+	t_token_type	type;
+	t_str			err_desc;
 	t_desc_status	status;
 	unsigned int	error_index;
 }	t_descriptor;
@@ -42,21 +58,27 @@ t_descriptor	fn_identifier(t_str str)
 {
 	t_descriptor	ret;
 
+	ret.type = TOKEN_IDENTIFIER;
 	ret.start = 0;
 	ret.end = 0;
 	if ((*str >= 'a' && *str <= 'z') || (*str >= 'A' && *str <= 'Z')
 		|| *str == '_')
 	{
 		ret.start = str;
-		str++;
+		ret.end = ++str;
 	}
 	else
-		return (t_descriptor){
+		return (t_descriptor)
+		{
 			.status = DESC_STATUS_NOT_FOUND,
-			.description = "'IDENTIFIER': expected "
+			.err_desc = "'IDENTIFIER': expected "
 							"alphabetical character or underscore",
 			.error_index = 0
 		};
+	while ((*str >= 'a' && *str <= 'z') || (*str >= 'A' && *str <= 'Z')
+		|| *str == '_' || (*str > '0' && *str < '9'))
+		ret.end = ++str;
+	ret.status = DESC_STATUS_OK;
 	return (ret);
 }
 
