@@ -6,7 +6,7 @@
 /*   By: hroussea <hroussea@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/12 16:47:26 by hroussea          #+#    #+#             */
-/*   Updated: 2021/02/12 20:44:31 by hroussea         ###   ########lyon.fr   */
+/*   Updated: 2021/02/13 19:46:47 by hroussea         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,6 +80,63 @@ t_descriptor	fn_identifier(t_str str)
 		ret.end = ++str;
 	ret.status = DESC_STATUS_OK;
 	return (ret);
+}
+
+t_descriptor	fn_number(t_str str)
+{
+	t_descriptor	ret;
+
+	ret.type = TOKEN_NUMBER;
+	ret.start = 0;
+	ret.end = 0;
+	if (*str >= '0' && *str <= '9')
+	{
+		ret.start = str;
+		ret.end = ++str;
+	}
+	else
+		return (t_descriptor)
+		{
+			.status = DESC_STATUS_NOT_FOUND,
+			.err_desc = "'NUMBER': expected "
+							"numerical character",
+			.error_index = 0
+		};
+	while (*str >= '0' && *str <= '9')
+		ret.end = ++str;
+	ret.status = DESC_STATUS_OK;
+	return (ret);
+}
+
+t_descriptor	fn_ws1(t_str str)
+{
+	t_descriptor	ret;
+
+	ret.type = TOKEN_WHITESPACES_ONE_OR_MORE;
+	ret.start = 0;
+	ret.end = 0;
+	if (*str == 0x9 || (*str >= 0xb && *str <= 0xd) || *str == 0x20)
+	{
+		ret.start = str;
+		ret.end = ++str;
+	}
+	else
+	{
+		ret.status = DESC_STATUS_NOT_FOUND;
+		ret.err_desc = "'WHITESPACES_ONE_OR_MORE': expected "
+			"whitespace character (ascii 0x9 -> 0xd, space)";
+		ret.error_index = 0;
+		return (ret);
+	}
+	while (*str == 0x9 || (*str >= 0xb && *str <= 0xd) || *str == 0x20)
+		ret.end = ++str;
+	ret.status = DESC_STATUS_OK;
+	return (ret);
+}
+
+t_descriptor	fn_char(t_str str, char c)
+{
+	printf("CHAR: %c\n", c);
 }
 
 #endif

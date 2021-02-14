@@ -6,7 +6,7 @@
 /*   By: hroussea <hroussea@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/12 14:30:28 by hroussea          #+#    #+#             */
-/*   Updated: 2021/02/12 20:46:14 by hroussea         ###   ########lyon.fr   */
+/*   Updated: 2021/02/13 19:43:57 by hroussea         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 # define PARSING_H
 
 # include <stdarg.h>
+# include <stdlib.h>
 # include <stdio.h>
 # include "funcs.h"
 
@@ -48,7 +49,7 @@ typedef struct s_token {
 }	t_token;
 
 typedef struct s_token_func {
-	t_token_type	type;
+	t_token		token;
 	union {
 		t_descriptor	(*as_std_token)(t_str str);
 		t_descriptor	(*as_char_token)(t_str str, char c);
@@ -64,6 +65,7 @@ typedef struct s_parser {
 
 typedef struct s_match {
 	t_descriptor	descs[64];
+	t_u8			has_matched;
 }	t_match;
 
 t_token	separator(t_str sep, unsigned int nb, unsigned char ws, t_token_type ib)
@@ -96,9 +98,15 @@ t_token_func	create_function_pointer(t_token tk)
 {
 	t_token_func	fn;
 
-	fn.type = tk.type;
+	fn.token = tk;
 	if (tk.type == TOKEN_IDENTIFIER)
 		fn.as_std_token = &fn_identifier;
+	else if (tk.type == TOKEN_NUMBER)
+		fn.as_std_token = &fn_number;
+	else if (tk.type == TOKEN_WHITESPACES_ONE_OR_MORE)
+		fn.as_std_token = &fn_ws1;
+	else if (tk.type == TOKEN_SINGLE_CHAR)
+		fn.as_char_token = &fn_char;
 	return (fn);
 }
 
@@ -120,25 +128,77 @@ void	parser_create(t_parser *parser, ...)
 	parser->is_valid = 1;
 }
 
+void	print_spaces(t_descriptor *desc, t_str str)
+{
+	unsigned int	i;
+
+	i = 0;
+	while (i < desc->error_index)
+		if (str[i++] != '\t')
+			printf(" ");
+	else
+		printf("\t");
+}
+
+void	display_desc_error(t_descriptor *desc, t_str str)
+{
+	printf(C_RED "Error:\n" C_NRM "%s" C_WHT "\n\n", desc->err_desc);
+	printf(C_NRM "%.*s" C_YEL "%.1s" C_NRM "%s\n",
+			desc->error_index,
+			str,
+			str + desc->error_index,
+			str + desc->error_index + 1);
+	print_spaces(desc, str);
+	printf(C_YEL "^\n");
+	print_spaces(desc, str);
+	printf("HERE\n" C_NRM);
+}
+
 t_match	parser_match(t_parser *parser, t_str str)
 {
 	t_match			ret;
-	t_descriptor	*desc;
+	unsigned int	i;
+	char			*next;
 
-	desc = &ret.descs[0];
-	ret.descs[0] = (*parser->funcs[0].as_std_token)(str);
-	if (ret.descs[0].status == DESC_STATUS_NOT_FOUND)
+	i = 0;
+	next = str;
+	while (i < parser->nbr_fn)
 	{
-		printf(C_RED "Error:\n" C_NRM "%s" C_WHT "\n\n", desc->err_desc);
-		printf(C_NRM "%.*s" C_YEL "%.1s" C_NRM "%s\n",
-				desc->error_index,
-				str,
-				str + desc->error_index,
-				str + desc->error_index + 1);
-		printf(C_YEL "%*s\n", desc->error_index + 1, "^");
-		printf("%*s\n" C_NRM, desc->error_index + 2, "HERE");
+		if (parser->funcs->token.type == TOKEN_SEPARATED)
+			;
+		else if (parser->funcs->token.type == TOKEN_SINGLE_CHAR)
+			ret.descs[i] = (*parser->funcs[i].as_char_token)(next, parser->funcs[i].token.as_single_char.chr);
+		else
+			ret.descs[i] = (*parser->funcs[i].as_std_token)(next);
+		if (ret.descs[i].status == DESC_STATUS_NOT_FOUND)
+		{
+			ret.has_matched = 0;
+			ret.descs[i].error_index = next - str;
+			display_desc_error(&ret.descs[i], str);
+			ret.descs[i + 1].type = TOKEN_FINISH_TASK;
+			return (ret);
+		}
+		next = ret.descs[i++].end;
 	}
-	ret.descs[1].type = TOKEN_FINISH_TASK;
+	ret.has_matched = 1;
+	ret.descs[i].type = TOKEN_FINISH_TASK;
+	return (ret);
+}
+
+t_str	desc_as_str(t_descriptor *desc)
+{
+	t_str			ret;
+	char			*tmp;
+	unsigned int	i;
+
+	i = 0;
+	ret = malloc(desc->end - desc->start + 1);
+	while (i < desc->end - desc->start)
+	{
+		ret[i] = desc->start[i];
+		++i;
+	}
+	ret[i] = 0;
 	return (ret);
 }
 

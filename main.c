@@ -6,7 +6,7 @@
 /*   By: hroussea <hroussea@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/12 15:01:43 by hroussea          #+#    #+#             */
-/*   Updated: 2021/02/12 20:53:10 by hroussea         ###   ########lyon.fr   */
+/*   Updated: 2021/02/13 19:44:47 by hroussea         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,25 +17,28 @@
 
 int	main(void)
 {
-	t_parser	parser;
-	t_match		match;
+	t_parser		parser;
+	t_match			match;
+	unsigned int	i;
 
+	i = 0;
 	parser_create(&parser,
-					token(TOKEN_IDENTIFIER),
 					token(TOKEN_WHITESPACES_ONE_OR_MORE),
-					separator(",", 3, 1, TOKEN_NUMBER),
-					token(TOKEN_WHITESPACES_ZERO_OR_MORE),
-					token(TOKEN_END_OF_STREAM),
+					single_char(','),
 					token(TOKEN_FINISH_TASK)
 				);
 	if (!parser.is_valid)
 		printf("Parser creation failed\n");
-	match = parser_match(&parser, "Ceci est du parsing");
-	char *str = malloc(match.descs[0].end - match.descs[0].start + 1);
-	memcpy(str, match.descs[0].start, match.descs[0].end - match.descs[0].start);
-	str[match.descs[0].end - match.descs[0].start] = 0;
-	if (match.descs[0].status == DESC_STATUS_OK)
-		printf("Match found: '%s'\n", str);
-	free(str);
+
+	char *ori = "  	   salut	 les amis";
+	printf("Original string: '%s'\n", ori);
+	match = parser_match(&parser, ori);
+	while (match.has_matched && match.descs[i].type != TOKEN_FINISH_TASK)
+	{
+		char *str = desc_as_str(&match.descs[i]);
+		printf("Match: '%s'\n", str);
+		free(str);
+		++i;
+	}
 	return (0);
 }
