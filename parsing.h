@@ -6,7 +6,7 @@
 /*   By: hroussea <hroussea@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/12 14:30:28 by hroussea          #+#    #+#             */
-/*   Updated: 2021/02/13 19:43:57 by hroussea         ###   ########lyon.fr   */
+/*   Updated: 2021/02/15 17:37:30 by hroussea         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,6 +103,8 @@ t_token_func	create_function_pointer(t_token tk)
 		fn.as_std_token = &fn_identifier;
 	else if (tk.type == TOKEN_NUMBER)
 		fn.as_std_token = &fn_number;
+	else if (tk.type == TOKEN_WHITESPACES_ZERO_OR_MORE)
+		fn.as_std_token = &fn_ws0;
 	else if (tk.type == TOKEN_WHITESPACES_ONE_OR_MORE)
 		fn.as_std_token = &fn_ws1;
 	else if (tk.type == TOKEN_SINGLE_CHAR)
@@ -143,6 +145,11 @@ void	print_spaces(t_descriptor *desc, t_str str)
 void	display_desc_error(t_descriptor *desc, t_str str)
 {
 	printf(C_RED "Error:\n" C_NRM "%s" C_WHT "\n\n", desc->err_desc);
+	if (!*str)
+	{
+		printf(C_YEL "(empty string)\n" C_NRM);
+		return ;
+	}
 	printf(C_NRM "%.*s" C_YEL "%.1s" C_NRM "%s\n",
 			desc->error_index,
 			str,
@@ -166,15 +173,25 @@ t_match	parser_match(t_parser *parser, t_str str)
 	{
 		if (parser->funcs->token.type == TOKEN_SEPARATED)
 			;
-		else if (parser->funcs->token.type == TOKEN_SINGLE_CHAR)
+		else if (parser->funcs[i].token.type == TOKEN_SINGLE_CHAR)
 			ret.descs[i] = (*parser->funcs[i].as_char_token)(next, parser->funcs[i].token.as_single_char.chr);
 		else
 			ret.descs[i] = (*parser->funcs[i].as_std_token)(next);
 		if (ret.descs[i].status == DESC_STATUS_NOT_FOUND)
 		{
-			ret.has_matched = 0;
 			ret.descs[i].error_index = next - str;
+			ret.has_matched = 0;
+			if (*ret.descs[i].end == 0)
+			{
+				if (ret.descs[i].type == TOKEN_SINGLE_CHAR)
+					free(ret.descs[i].err_desc);
+				ret.descs[i].error_index--;
+				ret.descs[i].err_desc = "Unexpected end of string";
+				ret.descs[i].type = TOKEN_INVALID;
+			}
 			display_desc_error(&ret.descs[i], str);
+			if (ret.descs[i].type == TOKEN_SINGLE_CHAR)
+				free(ret.descs[i].err_desc);
 			ret.descs[i + 1].type = TOKEN_FINISH_TASK;
 			return (ret);
 		}

@@ -6,7 +6,7 @@
 /*   By: hroussea <hroussea@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/12 15:01:43 by hroussea          #+#    #+#             */
-/*   Updated: 2021/02/13 19:44:47 by hroussea         ###   ########lyon.fr   */
+/*   Updated: 2021/02/15 17:53:49 by hroussea         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,18 +20,31 @@ int	main(void)
 	t_parser		parser;
 	t_match			match;
 	unsigned int	i;
+	char *ori = " 	 	 	 C 	 		 255    , 255	 	 		,     255 	 	 	";
 
 	i = 0;
 	parser_create(&parser,
+					token(TOKEN_WHITESPACES_ZERO_OR_MORE),
+					token(TOKEN_IDENTIFIER),
 					token(TOKEN_WHITESPACES_ONE_OR_MORE),
+					token(TOKEN_WHITESPACES_ZERO_OR_MORE),
+					token(TOKEN_NUMBER),
+					token(TOKEN_WHITESPACES_ZERO_OR_MORE),
 					single_char(','),
+					token(TOKEN_WHITESPACES_ZERO_OR_MORE),
+					token(TOKEN_NUMBER),
+					token(TOKEN_WHITESPACES_ZERO_OR_MORE),
+					single_char(','),
+					token(TOKEN_WHITESPACES_ZERO_OR_MORE),
+					token(TOKEN_NUMBER),
+					token(TOKEN_WHITESPACES_ZERO_OR_MORE),
 					token(TOKEN_FINISH_TASK)
 				);
 	if (!parser.is_valid)
+	{
 		printf("Parser creation failed\n");
-
-	char *ori = "  	   salut	 les amis";
-	printf("Original string: '%s'\n", ori);
+		return (0);
+	}
 	match = parser_match(&parser, ori);
 	while (match.has_matched && match.descs[i].type != TOKEN_FINISH_TASK)
 	{
