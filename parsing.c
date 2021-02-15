@@ -6,7 +6,7 @@
 /*   By: hroussea <hroussea@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/15 18:44:56 by hroussea          #+#    #+#             */
-/*   Updated: 2021/02/15 18:50:14 by hroussea         ###   ########lyon.fr   */
+/*   Updated: 2021/02/15 23:02:10 by hroussea         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,10 @@ t_token_func	create_function_pointer(t_token tk)
 		fn.as_std_token = &fn_ws1;
 	else if (tk.type == TOKEN_SINGLE_CHAR)
 		fn.as_char_token = &fn_char;
+	else if (tk.type == TOKEN_STRING)
+		fn.as_str_token = &fn_str;
+	else if (tk.type == TOKEN_NOT_WS_SEQ)
+		fn.as_std_token = &fn_not_ws_seq;
 	return (fn);
 }
 
@@ -62,19 +66,29 @@ void	print_spaces(t_descriptor *desc, t_str str)
 
 void	display_desc_error(t_descriptor *desc, t_str str)
 {
-	printf(C_RED "Error:\n" C_NRM "%s" C_WHT "\n\n", desc->err_desc);
-	if (!*str)
+	int	z_flag;
+
+	if (!g_stop_parsing_log)
 	{
-		printf(C_YEL "(empty string)\n" C_NRM);
-		return ;
+		if (!*str)
+		{
+			printf(C_YEL "(empty string)\n" C_NRM);
+			return ;
+		}
+		z_flag = !*(str + desc->error_index);
+		desc->error_index -= z_flag;
+		printf(C_NRM "%.*s" C_YEL "%.1s" C_NRM "%s\n",
+				desc->error_index,
+				str,
+				str + desc->error_index,
+				str + desc->error_index + 1);
+		desc->error_index += z_flag;
+		print_spaces(desc, str);
+		printf(C_YEL "^\n");
+		print_spaces(desc, str);
+		if (!z_flag)
+			printf("HERE\n" C_NRM);
+		else
+			printf("EARLY END OF STRING HERE\n" C_NRM);
 	}
-	printf(C_NRM "%.*s" C_YEL "%.1s" C_NRM "%s\n",
-			desc->error_index,
-			str,
-			str + desc->error_index,
-			str + desc->error_index + 1);
-	print_spaces(desc, str);
-	printf(C_YEL "^\n");
-	print_spaces(desc, str);
-	printf("HERE\n" C_NRM);
 }

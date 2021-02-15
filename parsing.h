@@ -6,7 +6,7 @@
 /*   By: hroussea <hroussea@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/12 14:30:28 by hroussea          #+#    #+#             */
-/*   Updated: 2021/02/15 18:51:33 by hroussea         ###   ########lyon.fr   */
+/*   Updated: 2021/02/15 22:15:43 by hroussea         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,15 +33,14 @@ typedef unsigned int	t_u32;
 
 typedef t_token_type	t_tp;
 
+t_u8					g_stop_parsing_log;
+
 typedef struct s_token {
 	t_token_type	type;
 	union {
-		struct s_sep {
-			t_str			separator;
-			t_token_type	in_between;
-			unsigned int	nbr;
-			unsigned char	accept_whitespace;
-		}	as_separated;
+		struct s_tk_str {
+			t_str			str;
+		}	as_string;
 		struct s_sc {
 			char	chr;
 		}	as_single_char;
@@ -51,8 +50,9 @@ typedef struct s_token {
 typedef struct s_token_func {
 	t_token		token;
 	union {
-		t_descriptor	(*as_std_token)(t_str str);
-		t_descriptor	(*as_char_token)(t_str str, char c);
+		t_descriptor	(*as_std_token)(t_str ori, t_str str);
+		t_descriptor	(*as_str_token)(t_str ori, t_str str, t_str str2);
+		t_descriptor	(*as_char_token)(t_str ori, t_str str, char c);
 	};
 }	t_token_func;
 
@@ -67,19 +67,17 @@ typedef struct s_match {
 	t_u8			has_matched;
 }	t_match;
 
-t_token			separator(t_str sep, t_u8 nb, t_u8 ws, t_token_type ib);
+t_token			token_string(t_str str);
 
 t_token			token(t_token_type type);
 
-t_token			single_char(char chr);
+t_token			token_char(char chr);
 
 t_token_func	create_function_pointer(t_token tk);
 
 void			parser_create(t_parser *parser, ...);
 
 void			print_spaces(t_descriptor *desc, t_str str);
-
-void			display_desc_error(t_descriptor *desc, t_str str);
 
 t_match			parser_match(t_parser *parser, t_str str);
 
