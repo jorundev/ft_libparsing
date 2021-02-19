@@ -6,7 +6,7 @@
 /*   By: hroussea <hroussea@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/15 18:44:56 by hroussea          #+#    #+#             */
-/*   Updated: 2021/02/19 10:14:59 by kryckely         ###   ########lyon.fr   */
+/*   Updated: 2021/02/19 15:09:54 by kryckely         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,8 @@ t_token_func	create_function_pointer(t_token tk)
 		fn.as_str_token = &fn_str;
 	else if (tk.type == TOKEN_NOT_WS_SEQ)
 		fn.as_std_token = &fn_not_ws_seq;
+	else if (tk.type == TOKEN_END_OF_STREAM)
+		fn.as_std_token = &fn_end;
 	return (fn);
 }
 
@@ -52,6 +54,7 @@ void	parser_create(t_parser *parser, ...)
 		parser->funcs[parser->nbr_fn++] = create_function_pointer(tk);
 	}
 	parser->is_valid = 1;
+	va_end(args);
 }
 
 void	print_spaces(t_descriptor *desc, t_str str)
