@@ -6,7 +6,7 @@
 /*   By: hroussea <hroussea@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/12 16:47:26 by hroussea          #+#    #+#             */
-/*   Updated: 2021/02/15 22:17:25 by hroussea         ###   ########lyon.fr   */
+/*   Updated: 2021/02/19 10:13:25 by kryckely         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,6 +70,8 @@ t_descriptor	fn_char(t_str ori, t_str str, char c);
 t_descriptor	fn_str(t_str ori, t_str str, t_str str2);
 
 t_descriptor	fn_not_ws_seq(t_str ori, t_str str);
+
+t_descriptor	fn_ws(t_str ori, t_str str);
 
 void			display_desc_error(t_descriptor *desc, t_str str);
 

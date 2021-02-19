@@ -6,7 +6,7 @@
 /*   By: hroussea <hroussea@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/12 15:01:43 by hroussea          #+#    #+#             */
-/*   Updated: 2021/02/15 23:05:46 by hroussea         ###   ########lyon.fr   */
+/*   Updated: 2021/02/19 10:20:46 by kryckely         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ void	make_parser(t_parser *parser)
 {
 	parser_create(parser,
 		token_string("test"),
-		token(TOKEN_WHITESPACES_ONE_OR_MORE),
+		token(TOKEN_WHITESPACE),
 		token(TOKEN_NOT_WS_SEQ),
 		token(TOKEN_WHITESPACES_ONE_OR_MORE),
 		token(TOKEN_NUMBER),
@@ -32,7 +32,7 @@ void	make_parser(t_parser *parser)
 	}
 }
 
-int	main(void)
+int	main(int ac, char **av)
 {
 	t_parser		parser;
 	t_match			match;
@@ -41,7 +41,9 @@ int	main(void)
 
 	i = 0;
 	make_parser(&parser);
-	match = parser_match(&parser, "test ./path/test/file.txt 7812");
+	if (ac != 2)
+		return (EXIT_FAILURE);
+	match = parser_match(&parser, av[1]);
 	while (match.has_matched && match.descs[i].type != TOKEN_FINISH_TASK)
 	{
 		str = desc_as_str(&match.descs[i++]);
